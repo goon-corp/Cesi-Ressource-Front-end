@@ -1,15 +1,14 @@
-import { api, setAccessToken, clearAccessToken } from './api';
+import { api, getAccessToken, setAccessToken, clearAccessToken } from './api';
 import type {
+  AuthResponse,
   ForgotPasswordPayload,
   LoginPayload,
   RegisterPayload,
-  User,
-  WebAuthResponse,
 } from '@/types/auth.types';
 
 export const authService = {
-  login: async (payload: LoginPayload): Promise<WebAuthResponse> => {
-    const response = await api.post<WebAuthResponse>('/auth/login/web', payload, false, true);
+  login: async (payload: LoginPayload): Promise<AuthResponse> => {
+    const response = await api.post<AuthResponse>('/auth/login/web', payload, false);
     setAccessToken(response.access_token);
     return response;
   },
@@ -21,7 +20,18 @@ export const authService = {
   forgotPassword: (payload: ForgotPasswordPayload): Promise<void> =>
     api.post<void>('/auth/forgot-password', payload, false),
 
-  getMe: (): Promise<User> => api.get<User>('/auth/me'),
+  /** Checks if the current in-memory token is still valid via /auth/check */
+  restoreSession: async (): Promise<string | null> => {
+    const token = getAccessToken();
+    if (!token) return null;
+    try {
+      await api.get<void>('/auth/check', true);
+      return token;
+    } catch {
+      clearAccessToken();
+      return null;
+    }
+  },
 
   logout: async (): Promise<void> => {
     try {

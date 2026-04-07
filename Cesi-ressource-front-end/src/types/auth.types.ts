@@ -20,8 +20,9 @@ export interface RegisterPayload {
   confirm_password: string;
 }
 
-export interface WebAuthResponse {
+export interface AuthResponse {
   access_token: string;
+  refresh_token: string;
   user: User;
 }
 

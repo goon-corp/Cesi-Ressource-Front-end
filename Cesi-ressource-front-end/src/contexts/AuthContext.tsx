@@ -49,13 +49,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [handleSessionExpired]);
 
   useEffect(() => {
-    authService.getMe()
-      .then((user) => {
-        setUserId(user.id);
+    authService.restoreSession()
+      .then((token) => {
+        setUserId(token ? extractUserIdFromToken(token) : null);
       })
-      .catch(() => {
-        setUserId(null);
-      })
+      .catch(() => setUserId(null))
       .finally(() => setIsLoading(false));
   }, []);
 

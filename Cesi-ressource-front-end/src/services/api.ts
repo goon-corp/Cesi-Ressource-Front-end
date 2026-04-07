@@ -1,22 +1,20 @@
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
 const API_KEY = import.meta.env.VITE_API_KEY as string | undefined;
 
-// ─── In-memory token ──────────────────────────────────────────────────────────
-// Le refreshToken est géré automatiquement par le browser via cookie HttpOnly.
-// L'accessToken est stocké uniquement en mémoire (protection XSS).
+// ─── Token storage ───────────────────────────────────────────────────────────
 
-let memoryToken: string | null = null;
+const TOKEN_KEY = 'access_token';
 
 export function getAccessToken(): string | null {
-  return memoryToken;
+  return localStorage.getItem(TOKEN_KEY);
 }
 
 export function setAccessToken(token: string) {
-  memoryToken = token;
+  localStorage.setItem(TOKEN_KEY, token);
 }
 
 export function clearAccessToken() {
-  memoryToken = null;
+  localStorage.removeItem(TOKEN_KEY);
 }
 
 // ─── Error ────────────────────────────────────────────────────────────────────
@@ -81,7 +79,6 @@ function extractErrorMessage(payload: unknown, extractResult: boolean, status: n
 }
 
 // ─── Token refresh ────────────────────────────────────────────────────────────
-// Le refreshToken est dans un cookie HttpOnly envoyé automatiquement via credentials: 'include'.
 
 let isRefreshing = false;
 let refreshPromise: Promise<string> | null = null;
@@ -104,7 +101,7 @@ async function refreshAccessToken(): Promise<string> {
       };
       if (API_KEY) headers['x-api-key'] = API_KEY;
 
-      const response = await fetch(`${API_URL}/auth/refresh`, {
+      const response = await fetch(`${API_URL}/auth/refresh-token`, {
         method: 'POST',
         headers,
         credentials: 'include',
