@@ -19,6 +19,18 @@ export interface CreateQuizQuestionPayload {
 }
 
 export const quizService = {
+  getQuizByResourceId: (resourceId: string): Promise<ApiQuiz> =>
+    api.get<ApiQuiz>(`/quizzes/${resourceId}`, false),
+
+  getQuizQuestions: (quizzId: string): Promise<ApiQuizzQuestion[]> =>
+    api.get<ApiQuizzQuestion[]>('/quizzes-questions', false, { QuizzId: quizzId, size: 100 }),
+
+  participateInQuestion: (questionId: string, userId: string): Promise<ApiQuizzQuestion> =>
+    api.put<ApiQuizzQuestion>(`/quizzes-questions/${questionId}/participate/${userId}`, {}, true),
+
+  deleteQuiz: (quizId: string): Promise<void> =>
+    api.delete<void>(`/quizzes/${quizId}`, true),
+
   createQuiz: (payload: CreateQuizPayload): Promise<ApiQuiz> => {
     const formData = new FormData();
     formData.append('Ressource.Title', payload.title);

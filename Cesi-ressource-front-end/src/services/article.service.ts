@@ -1,6 +1,20 @@
 import { api } from './api';
 import type { ApiArticle } from '@/types/resource.types';
 
+export interface UpdateArticleRessource {
+  title: string;
+  description: string;
+  tags: string[];
+  statusId: string;
+  confidentialityTypeId: string;
+  typeId: string;
+}
+
+export interface UpdateArticlePayload {
+  content: string;
+  ressource: UpdateArticleRessource;
+}
+
 export interface CreateArticlePayload {
   title: string;
   description: string;
@@ -32,4 +46,20 @@ export const articleService = {
     formData.append('Content', payload.content);
     return api.upload<ApiArticle>('POST', '/articles', formData, true);
   },
+
+  updateArticle: (articleId: string, payload: UpdateArticlePayload): Promise<ApiArticle> =>
+    api.put<ApiArticle>(`/articles/${articleId}`, {
+      content: payload.content,
+      ressource: {
+        title: payload.ressource.title,
+        description: payload.ressource.description,
+        tags: payload.ressource.tags,
+        status_id: payload.ressource.statusId,
+        confidentiality_type_id: payload.ressource.confidentialityTypeId,
+        type_id: payload.ressource.typeId,
+      },
+    }, true),
+
+  deleteArticle: (articleId: string): Promise<void> =>
+    api.delete<void>(`/articles/${articleId}`, true),
 };
