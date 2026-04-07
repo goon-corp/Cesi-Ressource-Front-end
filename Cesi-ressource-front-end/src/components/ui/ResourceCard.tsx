@@ -98,7 +98,7 @@ export function ResourceCard({ resource, onPress, actionsMode = 'default' }: Res
           <button style={buttonBase} onClick={handleLike} disabled={likePending}>
             <Heart size={18} color={liked ? colors.error : colors.textMuted} fill={liked ? colors.error : 'none'} />
             <AppText variant="caption" style={{ color: liked ? colors.error : colors.textMuted }}>
-              {liked ? 'Retiré des likes' : 'Retirer des likes'}
+              {liked ? 'Retirer des likes' : 'Retiré des likes'}
             </AppText>
           </button>
         </div>
