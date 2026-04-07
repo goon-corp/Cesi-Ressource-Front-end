@@ -9,6 +9,7 @@ import HomePage from '@/pages/home';
 import ProfilePage from '@/pages/profile';
 import EditProfilePage from '@/pages/edit-profile';
 import SettingsPage from '@/pages/settings';
+import ResourcesPage from '@/pages/resources/index';
 import ResourceDetailPage from '@/pages/resources/resource-detail';
 import CreateResourcePage from '@/pages/resources/create';
 import MentionsLegalesPage from '@/pages/mentions-legales';
@@ -30,6 +31,7 @@ export const router = createBrowserRouter([
   },
 
   { path: '/', element: <HomePage /> },
+  { path: '/resources', element: <ResourcesPage /> },
   { path: '/settings', element: <SettingsPage /> },
   { path: '/resources/:id', element: <ResourceDetailPage /> },
   { path: '/mentions-legales', element: <MentionsLegalesPage /> },
