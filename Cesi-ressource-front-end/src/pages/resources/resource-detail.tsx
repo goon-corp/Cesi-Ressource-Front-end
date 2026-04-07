@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams, useLocation } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Globe, MapPin, Link2, Calendar, Bookmark, BookmarkCheck, Eye, AlertCircle, FileText, Check, X, Trophy, BarChart2, Pencil, Trash2, MessageCircle, Send, Flag } from 'lucide-react';
 import { useTheme } from '@/hooks/useTheme';
 import { useAuth } from '@/hooks/useAuth';
@@ -16,21 +16,10 @@ import { pollService } from '@/services/poll.service';
 import { progressionService } from '@/services/progression.service';
 import { commentService } from '@/services/comment.service';
 import { reportService } from '@/services/report.service';
+import { slugToType } from '@/utils/resource-url';
 import type { ApiEvent, ApiArticle, ApiResource, ApiPoll, ApiPollOption, ApiQuizzQuestion, CommentDto, ReportTypeDto } from '@/types/resource.types';
 
-function normalizeLabel(label: string): string {
-  return label.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-}
-function isEventLabel(label: string): boolean {
-  const n = normalizeLabel(label);
-  return n.includes('event') || n.includes('venement');
-}
-function isArticleLabel(label: string): boolean { return normalizeLabel(label).includes('article'); }
-function isQuizLabel(label: string): boolean { return normalizeLabel(label).includes('quiz'); }
-function isPollLabel(label: string): boolean {
-  const n = normalizeLabel(label);
-  return n.includes('sondage') || n.includes('poll');
-}
+
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
@@ -673,21 +662,18 @@ function ReportSection({ ressourceId, isAuthenticated }: {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function ResourceDetailPage() {
-  const { id } = useParams<{ id: string }>();
-  const location = useLocation();
+  const { id, type: typeSlug } = useParams<{ id: string; type?: string; slug?: string }>();
   const navigate = useNavigate();
   const { colors } = useTheme();
   const { isAuthenticated, userId } = useAuth();
 
-  const state = location.state as { resource?: ApiResource; isOwner?: boolean } | null;
-  const passedResource = state?.resource ?? null;
-  const isOwner = state?.isOwner === true;
-  const resourceType = passedResource?.type?.label ?? '';
-
-  const isEvent = isEventLabel(resourceType);
-  const isArticle = isArticleLabel(resourceType);
-  const isQuiz = isQuizLabel(resourceType);
-  const isPoll = isPollLabel(resourceType);
+  const urlType = typeSlug ? slugToType(typeSlug) : null;
+  const noType = urlType === null;
+  const isEvent = urlType === 'event' || noType;
+  const isArticle = urlType === 'article' || noType;
+  const isQuiz = urlType === 'quiz' || noType;
+  const isPoll = urlType === 'poll' || noType;
+  const isOwner = false;
 
   const { data: eventData, isLoading: loadingEvent, error: errorEvent, refetch: refetchEvent } = useQuery(
     ['resource-detail-event', id],
@@ -726,11 +712,13 @@ export default function ResourceDetailPage() {
   const [confirmDeleteVisible, setConfirmDeleteVisible] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
-  const isLoading = loadingEvent || loadingArticle || loadingQuiz || loadingPoll;
-  const hasError = (isEvent && errorEvent) || (isArticle && errorArticle) || (isQuiz && errorQuiz) || (isPoll && errorPoll);
+  const isLoading = (isEvent && loadingEvent) || (isArticle && loadingArticle) || (isQuiz && loadingQuiz) || (isPoll && loadingPoll);
+  const hasError = noType
+    ? (errorEvent && errorArticle && errorQuiz && errorPoll)
+    : (isEvent && errorEvent) || (isArticle && errorArticle) || (isQuiz && errorQuiz) || (isPoll && errorPoll);
   const hasFetcher = isEvent || isArticle || isQuiz || isPoll;
 
-  const resource: ApiResource | null = eventData?.ressource ?? articleData?.ressource ?? quizData?.ressource ?? pollData?.ressource ?? passedResource ?? null;
+  const resource: ApiResource | null = eventData?.ressource ?? articleData?.ressource ?? quizData?.ressource ?? pollData?.ressource ?? null;
 
   const enterEditMode = () => {
     if (!resource) return;
@@ -893,9 +881,9 @@ export default function ResourceDetailPage() {
 
     return (
       <div style={{ padding: 16, paddingBottom: 32 }}>
-        {resourceType && (
+        {resource.type?.label && (
           <span style={{ display: 'inline-block', backgroundColor: colors.primaryLight, color: colors.primary, fontWeight: 700, fontSize: 12, padding: '3px 10px', borderRadius: 9999, marginBottom: 12 }}>
-            {resourceType}
+            {resource.type.label}
           </span>
         )}
         <AppText variant="h2" style={{ display: 'block', marginBottom: 8 }}>{resource.title}</AppText>

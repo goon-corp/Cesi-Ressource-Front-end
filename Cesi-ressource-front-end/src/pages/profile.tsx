@@ -13,6 +13,7 @@ import { AppButton } from '@/components/ui/AppButton';
 import { ResourceCard, type ResourceCardActionsMode } from '@/components/ui/ResourceCard';
 import { userService } from '@/services/user.service';
 import { toast } from '@/components/ui/Toast';
+import { resourceUrl } from '@/utils/resource-url';
 import type { ApiResource, PagedResult } from '@/types/resource.types';
 
 const PAGE_SIZE = 10;
@@ -89,7 +90,7 @@ function ResourceListTab({ userId, fetchFn, emptyLabel, actionsMode = 'default' 
             resource={item}
             index={index}
             actionsMode={actionsMode}
-            onPress={() => navigate(`/resources/${item.id}`, { state: { resource: item } })}
+            onPress={() => navigate(resourceUrl(item))}
           />
         ))}
       </div>
