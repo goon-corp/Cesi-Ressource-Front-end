@@ -475,7 +475,7 @@ export default function ResourceDetailPage() {
 
   if (editMode) {
     return (
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', backgroundColor: colors.background }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', backgroundColor: colors.background, overflow: 'hidden' }}>
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
         <div style={{ display: 'flex', alignItems: 'center', padding: '12px 16px', backgroundColor: colors.surface, borderBottom: `1px solid ${colors.borderLight}` }}>
           <button onClick={() => setEditMode(false)} disabled={editLoading} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, fontFamily: 'inherit' }}>
@@ -490,7 +490,7 @@ export default function ResourceDetailPage() {
           </button>
         </div>
 
-        <div style={{ flex: 1, overflowY: 'auto', padding: 16, paddingBottom: 32 }}>
+        <div style={{ flex: 1, overflowY: 'auto', minHeight: 0, padding: 16, paddingBottom: 32, maxWidth: 720, margin: '0 auto', width: '100%', boxSizing: 'border-box' }}>
           <AppTextInput label="Titre" value={editTitle} onChange={(e) => setEditTitle(e.target.value)} required />
           <AppTextInput label="Description" value={editDescription} onChange={(e) => setEditDescription(e.target.value)} multiline required />
 
@@ -651,11 +651,13 @@ export default function ResourceDetailPage() {
   };
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', backgroundColor: colors.background }}>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', backgroundColor: colors.background, overflow: 'hidden' }}>
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       <AppHeader title={resource?.title ?? 'Détails'} onMenuPress={() => navigate(-1)} showBack />
-      <div style={{ flex: 1, overflowY: 'auto' }}>
-        {renderContent()}
+      <div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
+        <div style={{ maxWidth: 900, margin: '0 auto', width: '100%' }}>
+          {renderContent()}
+        </div>
       </div>
       <ConfirmModal
         visible={confirmDeleteVisible}

@@ -70,10 +70,10 @@ export default function EditProfilePage() {
   };
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', backgroundColor: colors.background }}>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', backgroundColor: colors.background, overflow: 'hidden' }}>
       <AppHeader title="Modifier mon profil" onMenuPress={() => navigate(-1)} showBack />
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: 16, paddingBottom: 32 }}>
+      <div style={{ flex: 1, overflowY: 'auto', minHeight: 0, padding: 16, paddingBottom: 32, maxWidth: 640, margin: '0 auto', width: '100%', boxSizing: 'border-box' }}>
         <div style={{ textAlign: 'center', padding: '24px 0' }}>
           <div style={{ display: 'inline-block', border: `3px solid ${colors.primary}`, borderRadius: '50%', padding: 3 }}>
             <Avatar
