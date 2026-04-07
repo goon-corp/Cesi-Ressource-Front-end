@@ -657,7 +657,7 @@ export default function CreateResourcePage() {
   };
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', backgroundColor: colors.background }}>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', backgroundColor: colors.background, overflow: 'hidden' }}>
 
       <AppHeader
         title="Créer une ressource"
@@ -667,7 +667,7 @@ export default function CreateResourcePage() {
 
       <Stepper current={step} />
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: 16, paddingBottom: 0 }}>
+      <div style={{ flex: 1, overflowY: 'auto', minHeight: 0, padding: 16, paddingBottom: 0, maxWidth: 720, margin: '0 auto', width: '100%', boxSizing: 'border-box' }}>
         {step === 0 && (
           <div>
             <AppText variant="h3" style={{ display: 'block', marginBottom: 16 }}>Informations de base</AppText>
@@ -793,17 +793,19 @@ export default function CreateResourcePage() {
         )}
       </div>
 
-      <div style={{ padding: '12px 16px', borderTop: `1px solid ${colors.borderLight}`, backgroundColor: colors.background }}>
-        <AppAlert type="error" message={submitError} visible={!!submitError} />
-        {step === 0
-          ? <AppButton label="Suivant" onClick={goNext} />
-          : (
-            <div style={{ display: 'flex', gap: 8 }}>
-              <div style={{ flex: 1 }}><AppButton label="Précédent" onClick={goBack} variant="secondary" disabled={isSubmitting} /></div>
-              <div style={{ flex: 1 }}><AppButton label={isLastStep ? 'Créer' : 'Suivant'} onClick={isLastStep ? handleSubmit : goNext} loading={isLastStep && (isSubmitting || isLoadingStatuses)} disabled={isSubmitting || (isLastStep && isLoadingStatuses)} /></div>
-            </div>
-          )
-        }
+      <div style={{ borderTop: `1px solid ${colors.borderLight}`, backgroundColor: colors.background }}>
+        <div style={{ maxWidth: 720, margin: '0 auto', width: '100%', padding: '12px 16px', boxSizing: 'border-box' }}>
+          <AppAlert type="error" message={submitError} visible={!!submitError} />
+          {step === 0
+            ? <AppButton label="Suivant" onClick={goNext} />
+            : (
+              <div style={{ display: 'flex', gap: 8 }}>
+                <div style={{ flex: 1 }}><AppButton label="Précédent" onClick={goBack} variant="secondary" disabled={isSubmitting} /></div>
+                <div style={{ flex: 1 }}><AppButton label={isLastStep ? 'Créer' : 'Suivant'} onClick={isLastStep ? handleSubmit : goNext} loading={isLastStep && (isSubmitting || isLoadingStatuses)} disabled={isSubmitting || (isLastStep && isLoadingStatuses)} /></div>
+              </div>
+            )
+          }
+        </div>
       </div>
     </div>
   );
