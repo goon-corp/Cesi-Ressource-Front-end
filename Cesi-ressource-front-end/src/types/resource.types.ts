@@ -81,3 +81,11 @@ export interface ApiRessourceProgression {
   is_aside: boolean;
   is_exploited: boolean;
 }
+
+export interface PagedResult<T> {
+  items: T[];
+  total: number;
+  page: number;
+  size: number;
+  total_pages: number;
+}

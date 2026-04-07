@@ -53,7 +53,7 @@ export default function HomePage() {
 
   const [resources, setResources] = useState<ApiResource[]>([]);
   const [page, setPage] = useState(1);
-  const [hasNextPage, setHasNextPage] = useState(false);
+  const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -67,7 +67,7 @@ export default function HomePage() {
 
   const { data: resourceTypes } = useQuery(['resource-types'], () => resourceService.getResourceTypes());
   const { data: tagsData } = useQuery(['tags-list'], () => tagService.getTags({ size: 100 }));
-  const allTags = useMemo(() => (Array.isArray(tagsData) ? tagsData : []), [tagsData]);
+  const allTags = useMemo(() => tagsData?.items ?? [], [tagsData]);
 
   const fetchResources = useCallback(async (pageNum: number) => {
     setIsLoading(true);
@@ -79,9 +79,8 @@ export default function HomePage() {
         ...(activeFilter ? { RessourceType: activeFilter } : {}),
         ...(selectedTagIds.length > 0 ? { RessourceTags: selectedTagIds } : {}),
       });
-      const items = Array.isArray(result) ? result : [];
-      setResources(items);
-      setHasNextPage(items.length >= PAGE_SIZE);
+      setResources(result.items ?? []);
+      setTotalPages(result.total_pages ?? 1);
       setPage(pageNum);
     } catch {
       // silently handled
@@ -269,18 +268,18 @@ export default function HomePage() {
           <ChevronLeft size={18} color={colors.primary} />
           <AppText variant="label" style={{ color: colors.primary }}>Précédent</AppText>
         </button>
-        <AppText variant="label" muted>Page {page}</AppText>
+        <AppText variant="label" muted>Page {page} / {totalPages}</AppText>
         <button
           onClick={() => fetchResources(page + 1)}
-          disabled={!hasNextPage}
+          disabled={page >= totalPages}
           style={{
             display: 'flex',
             alignItems: 'center',
             gap: 4,
             background: 'none',
             border: 'none',
-            cursor: !hasNextPage ? 'not-allowed' : 'pointer',
-            opacity: !hasNextPage ? 0.35 : 1,
+            cursor: page >= totalPages ? 'not-allowed' : 'pointer',
+            opacity: page >= totalPages ? 0.35 : 1,
             fontFamily: 'inherit',
             padding: '6px 8px',
           }}

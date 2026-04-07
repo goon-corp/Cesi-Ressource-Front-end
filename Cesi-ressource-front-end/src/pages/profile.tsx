@@ -13,7 +13,7 @@ import { AppButton } from '@/components/ui/AppButton';
 import { ResourceCard, type ResourceCardActionsMode } from '@/components/ui/ResourceCard';
 import { userService } from '@/services/user.service';
 import { toast } from '@/components/ui/Toast';
-import type { ApiResource } from '@/types/resource.types';
+import type { ApiResource, PagedResult } from '@/types/resource.types';
 
 const PAGE_SIZE = 10;
 
@@ -25,7 +25,7 @@ const TABS: { key: TabKey; label: string }[] = [
   { key: 'resources', label: 'Mes ressources' },
 ];
 
-type FetchFn = (userId: string, page: number, size: number) => Promise<ApiResource[]>;
+type FetchFn = (userId: string, page: number, size: number) => Promise<PagedResult<ApiResource>>;
 
 function ResourceListTab({ userId, fetchFn, emptyLabel, actionsMode = 'default' }: {
   userId: string;
@@ -37,16 +37,15 @@ function ResourceListTab({ userId, fetchFn, emptyLabel, actionsMode = 'default' 
   const navigate = useNavigate();
   const [items, setItems] = useState<ApiResource[]>([]);
   const [page, setPage] = useState(1);
-  const [hasNext, setHasNext] = useState(false);
+  const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
 
   const load = useCallback(async (p: number) => {
     setIsLoading(true);
     try {
       const data = await fetchFn(userId, p, PAGE_SIZE);
-      const list = Array.isArray(data) ? data : [];
-      setItems(list);
-      setHasNext(list.length >= PAGE_SIZE);
+      setItems(data.items ?? []);
+      setTotalPages(data.total_pages ?? 1);
       setPage(p);
     } catch {
       setItems([]);
@@ -103,10 +102,10 @@ function ResourceListTab({ userId, fetchFn, emptyLabel, actionsMode = 'default' 
           <ChevronLeft size={18} color={colors.primary} />
           <AppText variant="label" style={{ color: colors.primary }}>Précédent</AppText>
         </button>
-        <AppText variant="label" muted>Page {page}</AppText>
+        <AppText variant="label" muted>Page {page} / {totalPages}</AppText>
         <button
-          onClick={() => load(page + 1)} disabled={!hasNext}
-          style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: !hasNext ? 'not-allowed' : 'pointer', opacity: !hasNext ? 0.35 : 1, fontFamily: 'inherit', padding: '6px 8px' }}
+          onClick={() => load(page + 1)} disabled={page >= totalPages}
+          style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', cursor: page >= totalPages ? 'not-allowed' : 'pointer', opacity: page >= totalPages ? 0.35 : 1, fontFamily: 'inherit', padding: '6px 8px' }}
         >
           <AppText variant="label" style={{ color: colors.primary }}>Suivant</AppText>
           <ChevronRight size={18} color={colors.primary} />

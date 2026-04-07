@@ -532,7 +532,7 @@ export default function CreateResourcePage() {
   const { data: tagsData, isLoading: loadingTags } = useQuery(['tags-list'], () => tagService.getTags({ size: 50 }));
 
   const allTags: TagDto[] = useMemo(() => {
-    const base = Array.isArray(tagsData) ? tagsData : [];
+    const base = tagsData?.items ?? [];
     const localIds = new Set(localTags.map((t) => t.id));
     return [...base.filter((t) => !localIds.has(t.id)), ...localTags];
   }, [tagsData, localTags]);
