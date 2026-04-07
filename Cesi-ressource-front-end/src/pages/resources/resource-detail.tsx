@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
-import { Globe, MapPin, Link2, Calendar, Bookmark, BookmarkCheck, Eye, AlertCircle, FileText, Check, X, Trophy, BarChart2, Pencil, Trash2, MessageCircle, Send } from 'lucide-react';
+import { Globe, MapPin, Link2, Calendar, Bookmark, BookmarkCheck, Eye, AlertCircle, FileText, Check, X, Trophy, BarChart2, Pencil, Trash2, MessageCircle, Send, Flag } from 'lucide-react';
 import { useTheme } from '@/hooks/useTheme';
 import { useAuth } from '@/hooks/useAuth';
 import { AppText } from '@/components/ui/AppText';
@@ -15,7 +15,8 @@ import { quizService } from '@/services/quiz.service';
 import { pollService } from '@/services/poll.service';
 import { progressionService } from '@/services/progression.service';
 import { commentService } from '@/services/comment.service';
-import type { ApiEvent, ApiArticle, ApiResource, ApiPoll, ApiPollOption, ApiQuizzQuestion, CommentDto } from '@/types/resource.types';
+import { reportService } from '@/services/report.service';
+import type { ApiEvent, ApiArticle, ApiResource, ApiPoll, ApiPollOption, ApiQuizzQuestion, CommentDto, ReportTypeDto } from '@/types/resource.types';
 
 function normalizeLabel(label: string): string {
   return label.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
@@ -557,6 +558,118 @@ function CommentsSection({ ressourceId, userId, isAuthenticated }: {
   );
 }
 
+// ─── Report section ──────────────────────────────────────────────────────────
+
+function ReportSection({ ressourceId, isAuthenticated }: {
+  ressourceId: string;
+  isAuthenticated: boolean;
+}) {
+  const { colors } = useTheme();
+  const [isOpen, setIsOpen] = useState(false);
+  const [reportTypes, setReportTypes] = useState<ReportTypeDto[]>([]);
+  const [selectedTypeId, setSelectedTypeId] = useState('');
+  const [isLoadingTypes, setIsLoadingTypes] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [alreadyReported, setAlreadyReported] = useState(false);
+
+  const openForm = async () => {
+    if (reportTypes.length === 0) {
+      setIsLoadingTypes(true);
+      try {
+        const types = await reportService.getReportTypes();
+        setReportTypes(types);
+        if (types.length > 0) setSelectedTypeId(types[0].id);
+      } catch {
+        toast.error('Impossible de charger les motifs de signalement.');
+        return;
+      } finally {
+        setIsLoadingTypes(false);
+      }
+    }
+    setIsOpen(true);
+  };
+
+  const handleSubmit = async () => {
+    if (!selectedTypeId) return;
+    setIsSubmitting(true);
+    try {
+      await reportService.create({ reportTypeId: selectedTypeId, ressourceId });
+      setAlreadyReported(true);
+      setIsOpen(false);
+      toast.success('Ressource signalée. Merci pour votre contribution.');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : '';
+      if (msg.toLowerCase().includes('already')) {
+        setAlreadyReported(true);
+        setIsOpen(false);
+        toast.error('Vous avez déjà signalé cette ressource.');
+      } else {
+        toast.error('Impossible d\'envoyer le signalement.');
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (!isAuthenticated) return null;
+
+  return (
+    <div style={{ marginTop: 24, paddingTop: 24, borderTop: `1px solid ${colors.borderLight}` }}>
+      {alreadyReported ? (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', borderRadius: 8, backgroundColor: colors.backgroundAlt, border: `1px solid ${colors.borderLight}` }}>
+          <Flag size={16} color={colors.textMuted} />
+          <AppText variant="caption" muted>Vous avez signalé cette ressource.</AppText>
+        </div>
+      ) : !isOpen ? (
+        <button
+          onClick={openForm}
+          disabled={isLoadingTypes}
+          style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'none', border: `1px solid ${colors.borderLight}`, borderRadius: 8, padding: '8px 14px', cursor: isLoadingTypes ? 'wait' : 'pointer', fontFamily: 'inherit' }}
+        >
+          {isLoadingTypes
+            ? <span style={{ display: 'inline-block', width: 16, height: 16, border: `2px solid ${colors.textMuted}`, borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.6s linear infinite' }} />
+            : <Flag size={16} color={colors.textMuted} />
+          }
+          <AppText variant="caption" muted>Signaler cette ressource</AppText>
+        </button>
+      ) : (
+        <div style={{ padding: 12, borderRadius: 8, border: `1px solid ${colors.borderLight}`, backgroundColor: colors.surface }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+            <Flag size={16} color={colors.error} />
+            <AppText variant="label" style={{ color: colors.error }}>Signaler cette ressource</AppText>
+          </div>
+          <AppText variant="caption" muted style={{ display: 'block', marginBottom: 12 }}>
+            Sélectionnez un motif de signalement :
+          </AppText>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
+            {reportTypes.map((type) => (
+              <label key={type.id} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', padding: '8px 12px', borderRadius: 6, border: `1px solid ${selectedTypeId === type.id ? colors.error : colors.borderLight}`, backgroundColor: selectedTypeId === type.id ? `${colors.error}10` : colors.background }}>
+                <input
+                  type="radio"
+                  name="report-type"
+                  value={type.id}
+                  checked={selectedTypeId === type.id}
+                  onChange={() => setSelectedTypeId(type.id)}
+                  style={{ accentColor: colors.error }}
+                />
+                <AppText variant="body">{type.label}</AppText>
+              </label>
+            ))}
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <div style={{ flex: 1 }}>
+              <AppButton label="Envoyer le signalement" onClick={handleSubmit} loading={isSubmitting} disabled={!selectedTypeId} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <AppButton label="Annuler" onClick={() => setIsOpen(false)} variant="secondary" disabled={isSubmitting} />
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function ResourceDetailPage() {
@@ -833,6 +946,10 @@ export default function ResourceDetailPage() {
 
         {id && (
           <CommentsSection ressourceId={id} userId={userId} isAuthenticated={isAuthenticated} />
+        )}
+
+        {id && (
+          <ReportSection ressourceId={id} isAuthenticated={isAuthenticated} />
         )}
 
         {isOwner && (
