@@ -270,7 +270,7 @@ export default function ResourcesPage() {
                   key={resource.id}
                   resource={resource}
                   index={index}
-                  onPress={() => navigate(`/resources/${resource.id}`)}
+                  onPress={() => navigate(`/resources/${resource.id}`, { state: { resource } })}
                 />
               ))}
             </div>
