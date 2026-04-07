@@ -93,6 +93,21 @@ export interface CommentDto {
   user_name?: string;
 }
 
+export interface ReportTypeDto {
+  id: string;
+  label: string;
+}
+
+export interface ReportDto {
+  id: string;
+  reportTypeId: string;
+  userId: string;
+  ressourceId: string;
+  isCheckedByModerator: boolean;
+  creationTime: string;
+  updateTime?: string;
+}
+
 export interface PagedResult<T> {
   items: T[];
   total: number;
