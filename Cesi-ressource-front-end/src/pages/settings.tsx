@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Sun, Moon, Monitor, User, Lock, Bell, Info, Shield, FileText, ChevronRight } from 'lucide-react';
+import { Sun, Moon, Monitor, User, Lock, Bell, Info, Shield, FileText, ChevronRight, ArrowRight } from 'lucide-react';
 import { useTheme } from '@/hooks/useTheme';
 import { useAuth } from '@/hooks/useAuth';
 import { useDrawer } from '@/contexts/DrawerContext';
@@ -59,11 +59,12 @@ export default function SettingsPage() {
   const navigate = useNavigate();
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', backgroundColor: colors.background }}>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', backgroundColor: colors.background, overflow: 'hidden' }}>
       <DrawerMenu isOpen={isOpen} onClose={closeDrawer} />
       <AppHeader title="Paramètres" onMenuPress={openDrawer} rightAction={<HeaderAuthAction />} />
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: 16, paddingBottom: 32 }}>
+      <div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
+      <div style={{ maxWidth: 640, margin: '0 auto', width: '100%', padding: 16, paddingBottom: 32, boxSizing: 'border-box' }}>
         <AppText variant="label" muted style={{ display: 'block', marginBottom: 8, letterSpacing: 0.5 }}>APPARENCE</AppText>
         <div style={{ backgroundColor: colors.surface, borderRadius: 8, border: `1px solid ${colors.borderLight}`, padding: 16, marginBottom: 24 }}>
           <AppText variant="label" style={{ display: 'block', marginBottom: 16 }}>Thème de l'application</AppText>
@@ -116,11 +117,39 @@ export default function SettingsPage() {
         </div>
 
         <AppText variant="label" muted style={{ display: 'block', marginBottom: 8, letterSpacing: 0.5 }}>À PROPOS</AppText>
-        <div style={{ backgroundColor: colors.surface, borderRadius: 8, border: `1px solid ${colors.borderLight}`, padding: '0 16px' }}>
-          <SettingRow Icon={Info} label="Mentions légales" onClick={() => navigate('/mentions-legales')} withDivider />
-          <SettingRow Icon={Shield} label="Politique de confidentialité" onClick={() => navigate('/politique-confidentialite')} withDivider />
-          <SettingRow Icon={FileText} label="Conditions d'utilisation" onClick={() => navigate('/conditions-utilisation')} />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {[
+            { Icon: Info, label: 'Mentions légales', description: 'Informations légales et éditeur du site', route: '/mentions-legales', color: colors.info, colorLight: colors.infoLight },
+            { Icon: Shield, label: 'Politique de confidentialité', description: 'Comment vos données sont collectées et utilisées', route: '/politique-confidentialite', color: colors.success, colorLight: colors.successLight },
+            { Icon: FileText, label: "Conditions d'utilisation", description: "Règles d'usage de la plateforme", route: '/conditions-utilisation', color: colors.primary, colorLight: colors.primaryLight },
+          ].map(({ Icon, label, description, route, color, colorLight }) => (
+            <button
+              key={route}
+              onClick={() => navigate(route)}
+              style={{
+                width: '100%', display: 'flex', alignItems: 'center', gap: 16,
+                padding: 16, borderRadius: 8,
+                border: `1px solid ${colors.borderLight}`,
+                backgroundColor: colors.surface,
+                cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+                transition: 'box-shadow 0.15s',
+              }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 2px 8px rgba(0,0,0,0.12)'; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 1px 3px rgba(0,0,0,0.06)'; }}
+            >
+              <div style={{ width: 40, height: 40, borderRadius: 8, backgroundColor: colorLight, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <Icon size={20} color={color} />
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <AppText variant="label" style={{ display: 'block', color: colors.text }}>{label}</AppText>
+                <AppText variant="caption" muted style={{ display: 'block', marginTop: 2 }}>{description}</AppText>
+              </div>
+              <ArrowRight size={16} color={colors.textLight} style={{ flexShrink: 0 }} />
+            </button>
+          ))}
         </div>
+      </div>
       </div>
     </div>
   );
