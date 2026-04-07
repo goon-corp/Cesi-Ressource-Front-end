@@ -12,7 +12,7 @@ export default function App() {
       <AuthProvider>
         <UserProvider>
           <DrawerProvider>
-            <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
               <RouterProvider router={router} />
             </div>
             <ToastContainer />
