@@ -118,15 +118,25 @@ function ResourceListTab({ userId, fetchFn, emptyLabel, actionsMode = 'default' 
 
 export default function ProfilePage() {
   const { logout } = useAuth();
-  const { user } = useUser();
+  const { user, isLoadingUser, refetchUser } = useUser();
   const { colors } = useTheme();
   const { openDrawer, isOpen, closeDrawer } = useDrawer();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<TabKey>('info');
 
   useEffect(() => {
-    if (!user) navigate('/login', { replace: true });
-  }, [user, navigate]);
+    refetchUser();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  if (isLoadingUser && !user) {
+    return (
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
+        <span style={{ display: 'inline-block', width: 32, height: 32, border: `3px solid ${colors.primary}`, borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.6s linear infinite' }} />
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    );
+  }
 
   if (!user) return null;
 
