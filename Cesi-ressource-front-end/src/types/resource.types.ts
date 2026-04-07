@@ -23,6 +23,7 @@ export interface ApiResource {
   title: string;
   description: string;
   thumbnail_id?: string;
+  user_id?: string;
   status?: ResourceStatusInfo;
   confidentiality_type?: ResourceConfidentialityTypeInfo;
   type?: ResourceTypeInfo;
