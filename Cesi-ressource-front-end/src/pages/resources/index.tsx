@@ -12,6 +12,7 @@ import { ResourceCard } from '@/components/ui/ResourceCard';
 import { resourceService } from '@/services/resource.service';
 import { tagService } from '@/services/tag.service';
 import { useQuery } from '@/hooks/useQuery';
+import { resourceUrl } from '@/utils/resource-url';
 import type { ApiResource } from '@/types/resource.types';
 
 const PAGE_SIZE = 12;
@@ -270,7 +271,7 @@ export default function ResourcesPage() {
                   key={resource.id}
                   resource={resource}
                   index={index}
-                  onPress={() => navigate(`/resources/${resource.id}`, { state: { resource } })}
+                  onPress={() => navigate(resourceUrl(resource))}
                 />
               ))}
             </div>
