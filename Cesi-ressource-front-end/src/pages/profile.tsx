@@ -146,40 +146,47 @@ export default function ProfilePage() {
   };
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', backgroundColor: colors.background }}>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', backgroundColor: colors.background, overflow: 'hidden' }}>
       <DrawerMenu isOpen={isOpen} onClose={closeDrawer} />
       <AppHeader title="Mon profil" onMenuPress={openDrawer} />
 
-      <div style={{ backgroundColor: colors.primary, padding: '32px 24px', textAlign: 'center' }}>
-        <div style={{ display: 'inline-block', border: `3px solid ${colors.background}`, borderRadius: '50%', padding: 3, marginBottom: 16 }}>
-          <Avatar name={`${user.first_name} ${user.last_name}`} size={88} backgroundColor="rgba(255,255,255,0.2)" textColor="#FFFFFF" />
-        </div>
-        <AppText style={{ color: colors.textOnPrimary, fontSize: 20, fontWeight: '700', display: 'block' }}>
-          {user.first_name} {user.last_name}
-        </AppText>
-        <AppText style={{ color: 'rgba(255,255,255,0.7)', display: 'block', marginTop: 4 }}>
-          @{user.user_name}
-        </AppText>
-      </div>
-
-      <div style={{ display: 'flex', gap: 8, padding: 16, backgroundColor: colors.background }}>
-        {[
-          { value: user.authored_ressources_count, label: 'Ressources' },
-          { value: user.liked_ressources_count, label: 'Likes' },
-          { value: user.favorite_ressources_count, label: 'Favoris' },
-        ].map(({ value, label }) => (
-          <div key={label} style={{
-            flex: 1, textAlign: 'center', padding: '12px 0',
-            backgroundColor: colors.surface, borderRadius: 8,
-            boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
-          }}>
-            <AppText style={{ color: colors.primary, fontSize: 24, fontWeight: '700', display: 'block' }}>{value}</AppText>
-            <AppText variant="caption" muted center style={{ marginTop: 2 }}>{label}</AppText>
+      <div style={{ borderBottom: `1px solid ${colors.borderLight}`, backgroundColor: colors.surface }}>
+        <div style={{ maxWidth: 720, margin: '0 auto', width: '100%', padding: '20px 16px 16px', boxSizing: 'border-box' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16 }}>
+            <div style={{ border: `3px solid ${colors.primary}`, borderRadius: '50%', padding: 2, flexShrink: 0 }}>
+              <Avatar name={`${user.first_name} ${user.last_name}`} size={64} backgroundColor={colors.primaryLight} textColor={colors.primary} />
+            </div>
+            <div>
+              <AppText style={{ fontSize: 18, fontWeight: '700', display: 'block', color: colors.text }}>
+                {user.first_name} {user.last_name}
+              </AppText>
+              <AppText style={{ color: colors.textMuted, display: 'block', marginTop: 2, fontSize: 14 }}>
+                @{user.user_name}
+              </AppText>
+            </div>
           </div>
-        ))}
+
+          <div style={{ display: 'flex', gap: 8 }}>
+            {[
+              { value: user.authored_ressources_count, label: 'Ressources' },
+              { value: user.liked_ressources_count, label: 'Likes' },
+              { value: user.favorite_ressources_count, label: 'Favoris' },
+            ].map(({ value, label }) => (
+              <div key={label} style={{
+                flex: 1, textAlign: 'center', padding: '8px 0',
+                backgroundColor: colors.background, borderRadius: 8,
+                border: `1px solid ${colors.borderLight}`,
+              }}>
+                <AppText style={{ color: colors.primary, fontSize: 20, fontWeight: '700', display: 'block' }}>{value}</AppText>
+                <AppText variant="caption" muted style={{ marginTop: 1 }}>{label}</AppText>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
       <div style={{ borderBottom: `1px solid ${colors.borderLight}`, backgroundColor: colors.surface }}>
+        <div style={{ maxWidth: 720, margin: '0 auto', width: '100%' }}>
         <div style={{ display: 'flex', overflowX: 'auto', scrollbarWidth: 'none' }}>
           {TABS.map((tab) => {
             const isActive = tab.key === activeTab;
@@ -205,9 +212,11 @@ export default function ProfilePage() {
             );
           })}
         </div>
+        </div>
       </div>
 
-      <div style={{ flex: 1, overflowY: 'auto' }}>
+      <div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
+        <div style={{ maxWidth: 720, margin: '0 auto', width: '100%' }}>
         {activeTab === 'info' && (
           <div style={{ padding: 16, paddingBottom: 32 }}>
             <button
@@ -262,6 +271,7 @@ export default function ProfilePage() {
         {activeTab === 'resources' && (
           <ResourceListTab userId={user.id} fetchFn={userService.getAuthoredResources} emptyLabel="Vous n'avez encore publié aucune ressource." />
         )}
+        </div>
       </div>
     </div>
   );
