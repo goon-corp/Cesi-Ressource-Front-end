@@ -98,7 +98,7 @@ export default function HomePage() {
   }, []);
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', backgroundColor: colors.background }}>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', backgroundColor: colors.background, overflow: 'hidden' }}>
       <DrawerMenu isOpen={isOpen} onClose={closeDrawer} />
 
       <AppHeader
@@ -120,21 +120,22 @@ export default function HomePage() {
         }
       />
 
-      <div style={{ padding: '16px 16px 0', backgroundColor: colors.background }}>
+      <div style={{ padding: '16px 16px 0', backgroundColor: colors.background, maxWidth: 1200, margin: '0 auto', width: '100%', alignSelf: 'center', boxSizing: 'border-box' }}>
         <div
           style={{
             display: 'flex',
             alignItems: 'center',
             gap: 8,
-            border: `2px solid ${searchFocused ? colors.inputBorderFocus : colors.border}`,
-            borderRadius: 4,
-            padding: '6px 8px',
+            border: `1px solid ${searchFocused ? colors.inputBorderFocus : colors.border}`,
+            borderRadius: 20,
+            padding: '6px 14px',
             backgroundColor: colors.surface,
-            marginBottom: 8,
-            transition: 'border-color 0.15s',
+            marginBottom: 10,
+            boxShadow: searchFocused ? `0 0 0 3px ${colors.primaryLight}` : '0 1px 3px rgba(0,0,0,0.08)',
+            transition: 'box-shadow 0.15s, border-color 0.15s',
           }}
         >
-          <Search size={18} color={colors.placeholder} />
+          <Search size={15} color={colors.placeholder} style={{ flexShrink: 0 }} />
           <input
             type="text"
             value={search}
@@ -148,13 +149,15 @@ export default function HomePage() {
               outline: 'none',
               background: 'transparent',
               color: colors.text,
-              fontSize: 16,
+              fontSize: 13,
               fontFamily: 'inherit',
+              padding: 0,
+              lineHeight: '20px',
             }}
           />
           {search && (
-            <button onClick={() => setSearch('')} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex' }}>
-              <X size={18} color={colors.textMuted} />
+            <button onClick={() => setSearch('')} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', padding: 0 }}>
+              <X size={14} color={colors.textMuted} />
             </button>
           )}
         </div>
@@ -206,7 +209,7 @@ export default function HomePage() {
         </div>
       </div>
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: '0 16px' }}>
+      <div style={{ flex: 1, overflowY: 'auto', minHeight: 0, padding: '0 16px', maxWidth: 1200, margin: '0 auto', width: '100%', alignSelf: 'center', boxSizing: 'border-box' }}>
         {isLoading ? (
           <div style={{ display: 'flex', justifyContent: 'center', padding: 48 }}>
             <span style={{
@@ -221,7 +224,7 @@ export default function HomePage() {
 
           </div>
         ) : resources.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '64px 0' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, minHeight: 300, padding: '32px 0' }}>
             <Search size={52} color={colors.textLight} />
             <AppText variant="h3" muted center style={{ marginTop: 16 }}>Aucun résultat</AppText>
             <AppText variant="body" muted center style={{ marginTop: 4 }}>
