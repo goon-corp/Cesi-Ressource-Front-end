@@ -17,12 +17,14 @@ import type { ApiResource, PagedResult } from '@/types/resource.types';
 
 const PAGE_SIZE = 10;
 
-type TabKey = 'info' | 'likes' | 'favorites' | 'resources';
+type TabKey = 'info' | 'likes' | 'favorites' | 'resources' | 'aside' | 'exploited';
 const TABS: { key: TabKey; label: string }[] = [
   { key: 'info', label: 'Mes infos' },
   { key: 'likes', label: 'Mes likes' },
   { key: 'favorites', label: 'Mes favoris' },
   { key: 'resources', label: 'Mes ressources' },
+  { key: 'aside', label: 'Ma watchlist' },
+  { key: 'exploited', label: 'Consultées' },
 ];
 
 type FetchFn = (userId: string, page: number, size: number) => Promise<PagedResult<ApiResource>>;
@@ -270,6 +272,12 @@ export default function ProfilePage() {
         )}
         {activeTab === 'resources' && (
           <ResourceListTab userId={user.id} fetchFn={userService.getAuthoredResources} emptyLabel="Vous n'avez encore publié aucune ressource." />
+        )}
+        {activeTab === 'aside' && (
+          <ResourceListTab userId={user.id} fetchFn={userService.getAsideResources} emptyLabel="Vous n'avez aucune ressource dans votre watchlist." />
+        )}
+        {activeTab === 'exploited' && (
+          <ResourceListTab userId={user.id} fetchFn={userService.getExploitedResources} emptyLabel="Vous n'avez encore consulté aucune ressource." />
         )}
         </div>
       </div>

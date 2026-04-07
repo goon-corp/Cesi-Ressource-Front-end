@@ -1,19 +1,21 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
-import { Globe, MapPin, Link2, Calendar, Bookmark, BookmarkCheck, Eye, AlertCircle, FileText, Check, X, Trophy, BarChart2, Pencil, Trash2 } from 'lucide-react';
+import { Globe, MapPin, Link2, Calendar, Bookmark, BookmarkCheck, Eye, AlertCircle, FileText, Check, X, Trophy, BarChart2, Pencil, Trash2, MessageCircle, Send } from 'lucide-react';
 import { useTheme } from '@/hooks/useTheme';
 import { useAuth } from '@/hooks/useAuth';
 import { AppText } from '@/components/ui/AppText';
 import { AppTextInput } from '@/components/ui/AppTextInput';
 import { AppButton } from '@/components/ui/AppButton';
 import { AppHeader } from '@/components/layout/AppHeader';
+import { toast } from '@/components/ui/Toast';
 import { useQuery } from '@/hooks/useQuery';
 import { eventService } from '@/services/event.service';
 import { articleService } from '@/services/article.service';
 import { quizService } from '@/services/quiz.service';
 import { pollService } from '@/services/poll.service';
 import { progressionService } from '@/services/progression.service';
-import type { ApiEvent, ApiArticle, ApiResource, ApiPoll, ApiPollOption, ApiQuizzQuestion } from '@/types/resource.types';
+import { commentService } from '@/services/comment.service';
+import type { ApiEvent, ApiArticle, ApiResource, ApiPoll, ApiPollOption, ApiQuizzQuestion, CommentDto } from '@/types/resource.types';
 
 function normalizeLabel(label: string): string {
   return label.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
@@ -349,6 +351,212 @@ function WatchlistSection({ ressourceId, userId }: { ressourceId: string; userId
   );
 }
 
+// ─── Comments section ────────────────────────────────────────────────────────
+
+function formatCommentDate(iso: string): string {
+  const date = new Date(iso);
+  const now = new Date();
+  const isToday =
+    date.getDate() === now.getDate() &&
+    date.getMonth() === now.getMonth() &&
+    date.getFullYear() === now.getFullYear();
+  const formatted = date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
+  if (isToday) {
+    const time = date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    return `${formatted} à ${time}`;
+  }
+  return formatted;
+}
+
+function CommentsSection({ ressourceId, userId, isAuthenticated }: {
+  ressourceId: string;
+  userId: string | null;
+  isAuthenticated: boolean;
+}) {
+  const { colors } = useTheme();
+  const [comments, setComments] = useState<CommentDto[]>([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [newContent, setNewContent] = useState('');
+  const [isPosting, setIsPosting] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editContent, setEditContent] = useState('');
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const load = useCallback(async (targetPage: number, append: boolean) => {
+    if (append) setIsLoadingMore(true);
+    else setIsLoading(true);
+    try {
+      const result = await commentService.getByRessource(ressourceId, targetPage, 10);
+      setComments((prev) => append ? [...prev, ...result.items] : result.items);
+      setTotal(result.total);
+      setPage(targetPage);
+    } catch {
+      toast.error('Impossible de charger les commentaires.');
+    } finally {
+      setIsLoading(false);
+      setIsLoadingMore(false);
+    }
+  }, [ressourceId]);
+
+  useEffect(() => { load(1, false); }, [load]);
+
+  const handlePost = async () => {
+    if (!userId || !newContent.trim()) return;
+    setIsPosting(true);
+    try {
+      const created = await commentService.create({ content: newContent.trim(), ressourceId, userId });
+      setComments((prev) => [created, ...prev]);
+      setTotal((t) => t + 1);
+      setNewContent('');
+    } catch {
+      toast.error('Impossible de publier le commentaire.');
+    } finally {
+      setIsPosting(false);
+    }
+  };
+
+  const startEdit = (comment: CommentDto) => {
+    setEditingId(comment.id);
+    setEditContent(comment.content);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingId || !editContent.trim()) return;
+    setIsSavingEdit(true);
+    try {
+      const updated = await commentService.update(editingId, editContent.trim());
+      setComments((prev) => prev.map((c) => (c.id === editingId ? updated : c)));
+      setEditingId(null);
+    } catch {
+      toast.error('Impossible de modifier le commentaire.');
+    } finally {
+      setIsSavingEdit(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    setDeletingId(id);
+    try {
+      await commentService.delete(id);
+      setComments((prev) => prev.filter((c) => c.id !== id));
+      setTotal((t) => t - 1);
+    } catch {
+      toast.error('Impossible de supprimer le commentaire.');
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const hasMore = comments.length < total;
+
+  return (
+    <div style={{ marginTop: 24, paddingTop: 24, borderTop: `1px solid ${colors.borderLight}` }}>
+      <AppText variant="label" style={{ display: 'block', marginBottom: 16 }}>
+        Commentaires{total > 0 ? ` (${total})` : ''}
+      </AppText>
+
+      {isAuthenticated && userId && (
+        <div style={{ marginBottom: 16, padding: 12, borderRadius: 8, border: `1px solid ${colors.border}`, backgroundColor: colors.surface }}>
+          <AppTextInput
+            label="Nouveau commentaire"
+            value={newContent}
+            onChange={(e) => setNewContent(e.target.value)}
+            placeholder="Ajouter un commentaire..."
+            multiline
+          />
+          <AppButton
+            label="Publier"
+            onClick={handlePost}
+            loading={isPosting}
+            disabled={!newContent.trim()}
+          />
+        </div>
+      )}
+
+      {isLoading ? (
+        <div style={{ display: 'flex', justifyContent: 'center', padding: 24 }}>
+          <span style={{ display: 'inline-block', width: 24, height: 24, border: `3px solid ${colors.primary}`, borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.6s linear infinite' }} />
+        </div>
+      ) : comments.length === 0 ? (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: 24, border: `1px solid ${colors.borderLight}`, borderRadius: 8 }}>
+          <MessageCircle size={28} color={colors.textLight} />
+          <AppText variant="body" muted center style={{ marginTop: 8 }}>Aucun commentaire pour l'instant.</AppText>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {comments.map((comment) => {
+            const isOwn = userId === comment.user_id;
+            const isEditing = editingId === comment.id;
+            const isDeleting = deletingId === comment.id;
+            return (
+              <div key={comment.id} style={{ padding: 12, borderRadius: 8, border: `1px solid ${colors.borderLight}`, backgroundColor: colors.surface }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 8 }}>
+                  <div style={{ width: 34, height: 34, borderRadius: '50%', backgroundColor: colors.primaryLight, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <AppText variant="caption" style={{ color: colors.primary, fontWeight: '700' }}>
+                      {(comment.user_name ?? 'U')[0].toUpperCase()}
+                    </AppText>
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <AppText variant="label" style={{ display: 'block' }}>{comment.user_name ?? 'Utilisateur'}</AppText>
+                    <AppText variant="caption" muted>{formatCommentDate(comment.creation_time)}</AppText>
+                  </div>
+                  {isOwn && !isEditing && (
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <button onClick={() => startEdit(comment)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>
+                        <Pencil size={15} color={colors.textMuted} />
+                      </button>
+                      <button onClick={() => handleDelete(comment.id)} disabled={isDeleting} style={{ background: 'none', border: 'none', cursor: isDeleting ? 'not-allowed' : 'pointer', padding: 4 }}>
+                        {isDeleting
+                          ? <span style={{ display: 'inline-block', width: 15, height: 15, border: `2px solid ${colors.error}`, borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.6s linear infinite' }} />
+                          : <Trash2 size={15} color={colors.error} />
+                        }
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {isEditing ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <AppTextInput
+                      label="Modifier le commentaire"
+                      value={editContent}
+                      onChange={(e) => setEditContent(e.target.value)}
+                      multiline
+                    />
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <div style={{ flex: 1 }}>
+                        <AppButton label="Sauvegarder" onClick={handleSaveEdit} loading={isSavingEdit} disabled={!editContent.trim()} />
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <AppButton label="Annuler" onClick={() => setEditingId(null)} variant="secondary" disabled={isSavingEdit} />
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <AppText variant="body" style={{ whiteSpace: 'pre-wrap' }}>{comment.content}</AppText>
+                )}
+              </div>
+            );
+          })}
+
+          {hasMore && (
+            <AppButton
+              label={`Charger plus (${total - comments.length} restants)`}
+              variant="secondary"
+              onClick={() => load(page + 1, true)}
+              loading={isLoadingMore}
+            />
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function ResourceDetailPage() {
@@ -621,6 +829,10 @@ export default function ResourceDetailPage() {
 
         {isAuthenticated && userId && id && (
           <WatchlistSection ressourceId={id} userId={userId} />
+        )}
+
+        {id && (
+          <CommentsSection ressourceId={id} userId={userId} isAuthenticated={isAuthenticated} />
         )}
 
         {isOwner && (
