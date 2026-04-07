@@ -673,7 +673,6 @@ export default function ResourceDetailPage() {
   const isArticle = urlType === 'article' || noType;
   const isQuiz = urlType === 'quiz' || noType;
   const isPoll = urlType === 'poll' || noType;
-  const isOwner = false;
 
   const { data: eventData, isLoading: loadingEvent, error: errorEvent, refetch: refetchEvent } = useQuery(
     ['resource-detail-event', id],
@@ -719,6 +718,7 @@ export default function ResourceDetailPage() {
   const hasFetcher = isEvent || isArticle || isQuiz || isPoll;
 
   const resource: ApiResource | null = eventData?.ressource ?? articleData?.ressource ?? quizData?.ressource ?? pollData?.ressource ?? null;
+  const isOwner = !!(isAuthenticated && userId && resource?.user_id && userId === resource.user_id);
 
   const enterEditMode = () => {
     if (!resource) return;
