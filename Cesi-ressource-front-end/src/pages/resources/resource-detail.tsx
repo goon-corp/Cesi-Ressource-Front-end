@@ -251,7 +251,7 @@ export default function ResourceDetailPage() {
       return (
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flex: 1, padding: 48 }}>
           <span style={{ display: 'inline-block', width: 36, height: 36, border: `3px solid ${colors.primary}`, borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.6s linear infinite' }} />
-          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+
         </div>
       );
     }
@@ -278,7 +278,6 @@ export default function ResourceDetailPage() {
 
     return (
       <div style={{ padding: 16, paddingBottom: 32 }}>
-        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
 
         {resourceType && (
           <span style={{ display: 'inline-block', backgroundColor: colors.primaryLight, color: colors.primary, fontWeight: 700, fontSize: 12, padding: '3px 10px', borderRadius: 9999, marginBottom: 12 }}>

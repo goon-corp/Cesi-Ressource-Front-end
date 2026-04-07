@@ -7,6 +7,7 @@ import { AppTextInput } from '@/components/ui/AppTextInput';
 import { AppButton } from '@/components/ui/AppButton';
 import { AppHeader } from '@/components/layout/AppHeader';
 import { AppAlert } from '@/components/ui/AppAlert';
+import { toast } from '@/components/ui/Toast';
 import { useQuery } from '@/hooks/useQuery';
 import { useMutation } from '@/hooks/useMutation';
 import { resourceService } from '@/services/resource.service';
@@ -609,15 +610,16 @@ export default function CreateResourcePage() {
           }
         }
       }
+      toast.success('Ressource créée avec succès !');
       navigate(-1);
     } catch {
-      setSubmitError('Une erreur est survenue lors de la création.');
+      toast.error('Une erreur est survenue lors de la création.');
     }
   };
 
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', backgroundColor: colors.background }}>
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+
       <AppHeader
         title="Créer une ressource"
         showBack

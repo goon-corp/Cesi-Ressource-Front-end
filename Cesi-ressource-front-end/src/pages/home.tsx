@@ -219,7 +219,7 @@ export default function HomePage() {
               borderRadius: '50%',
               animation: 'spin 0.6s linear infinite',
             }} />
-            <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+
           </div>
         ) : resources.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '64px 0' }}>

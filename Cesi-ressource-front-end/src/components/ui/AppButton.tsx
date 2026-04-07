@@ -101,7 +101,6 @@ export function AppButton({
           {label}
         </>
       )}
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </button>
   );
 }
