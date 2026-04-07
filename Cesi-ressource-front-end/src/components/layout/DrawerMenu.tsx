@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Home, BookOpen, Users, User, Settings, LogOut, LogIn, Lock, X } from 'lucide-react';
+import { Home, BookOpen, User, Settings, LogOut, LogIn, Lock, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '@/hooks/useTheme';
 import { useAuth } from '@/hooks/useAuth';
@@ -18,8 +18,7 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { key: 'home', label: 'Accueil', Icon: Home, route: '/' },
-  { key: 'resources', label: 'Ressources', Icon: BookOpen, route: '/' },
-  { key: 'community', label: 'Communauté', Icon: Users, route: '/' },
+  { key: 'resources', label: 'Ressources', Icon: BookOpen, route: '/resources' },
   { key: 'profile', label: 'Mon profil', Icon: User, route: '/profile', requireAuth: true },
   { key: 'settings', label: 'Paramètres', Icon: Settings, route: '/settings' },
 ];
