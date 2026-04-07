@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { ArrowLeft, CheckCircle, Circle, XCircle } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/hooks/useTheme';
@@ -8,6 +8,7 @@ import { AppTextInput } from '@/components/ui/AppTextInput';
 import { AppButton } from '@/components/ui/AppButton';
 import { AppAlert } from '@/components/ui/AppAlert';
 import { ApiError } from '@/services/api';
+import { toast } from '@/components/ui/Toast';
 
 interface FieldErrors {
   email?: string;
@@ -127,7 +128,7 @@ function StepIndicator({ current, total }: { current: number; total: number }) {
 }
 
 export default function RegisterPage() {
-  const { register } = useAuth();
+  const { register, isAuthenticated } = useAuth();
   const { colors } = useTheme();
   const navigate = useNavigate();
 
@@ -143,6 +144,8 @@ export default function RegisterPage() {
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [apiError, setApiError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  if (isAuthenticated) return <Navigate to="/" replace />;
 
   const isStep1Valid =
     /\S+@\S+\.\S+/.test(form.email) &&
@@ -178,6 +181,7 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       await register(form);
+      toast.success('Compte créé avec succès ! Connectez-vous.');
       navigate('/login', { replace: true });
     } catch (err) {
       if (err instanceof ApiError) {

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { ArrowLeft, LockOpen } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/hooks/useTheme';
@@ -9,7 +9,7 @@ import { AppButton } from '@/components/ui/AppButton';
 import { AppAlert } from '@/components/ui/AppAlert';
 
 export default function ForgotPasswordPage() {
-  const { forgotPassword } = useAuth();
+  const { forgotPassword, isAuthenticated } = useAuth();
   const { colors } = useTheme();
   const navigate = useNavigate();
 
@@ -17,6 +17,8 @@ export default function ForgotPasswordPage() {
   const [emailError, setEmailError] = useState('');
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+
+  if (isAuthenticated) return <Navigate to="/" replace />;
 
   const handleSubmit = async () => {
     if (!email) { setEmailError("L'adresse email est requise"); return; }

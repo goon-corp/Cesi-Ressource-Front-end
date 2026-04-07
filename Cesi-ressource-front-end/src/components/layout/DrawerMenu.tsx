@@ -5,7 +5,6 @@ import { useTheme } from '@/hooks/useTheme';
 import { useAuth } from '@/hooks/useAuth';
 import { useUser } from '@/contexts/UserContext';
 import { AppText } from '@/components/ui/AppText';
-import { Avatar } from '@/components/ui/Avatar';
 
 const DRAWER_WIDTH = Math.min(window.innerWidth * 0.78, 320);
 
@@ -256,17 +255,6 @@ export function DrawerMenu({ isOpen, onClose }: DrawerMenuProps) {
             </button>
           )}
         </div>
-
-        {isAuthenticated && user && (
-          <div style={{ padding: '8px 16px 16px' }}>
-            <Avatar
-              name={`${user.first_name} ${user.last_name}`}
-              size={32}
-              backgroundColor={colors.primaryLight}
-              textColor={colors.primary}
-            />
-          </div>
-        )}
       </div>
     </>
   );

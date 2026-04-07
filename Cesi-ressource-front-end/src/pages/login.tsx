@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUser } from '@/contexts/UserContext';
@@ -9,6 +9,7 @@ import { AppTextInput } from '@/components/ui/AppTextInput';
 import { AppButton } from '@/components/ui/AppButton';
 import { AppAlert } from '@/components/ui/AppAlert';
 import { ApiError } from '@/services/api';
+import { toast } from '@/components/ui/Toast';
 
 interface FieldErrors {
   email?: string;
@@ -24,7 +25,7 @@ function validate(email: string, password: string): FieldErrors {
 }
 
 export default function LoginPage() {
-  const { login } = useAuth();
+  const { login, isAuthenticated } = useAuth();
   const { fetchUser } = useUser();
   const { colors } = useTheme();
   const navigate = useNavigate();
@@ -34,6 +35,8 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState('');
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+
+  if (isAuthenticated) return <Navigate to="/" replace />;
 
   const clearFieldError = (field: keyof FieldErrors) =>
     setFieldErrors((prev) => ({ ...prev, [field]: undefined }));
@@ -50,12 +53,14 @@ export default function LoginPage() {
     try {
       const userId = await login({ email, password });
       if (userId) await fetchUser(userId);
+      toast.success('Connexion réussie !');
       navigate('/', { replace: true });
     } catch (err) {
+      console.error('Login error:', err);
       if (err instanceof ApiError) {
         setApiError(err.message);
       } else {
-        setApiError('Une erreur est survenue. Veuillez réessayer.');
+        setApiError(err instanceof Error ? err.message : 'Une erreur est survenue. Veuillez réessayer.');
       }
     } finally {
       setLoading(false);

@@ -3,6 +3,7 @@ import { Heart, Bookmark, ImageOff } from 'lucide-react';
 import { useTheme } from '@/hooks/useTheme';
 import { useAuth } from '@/hooks/useAuth';
 import { resourceService } from '@/services/resource.service';
+import { toast } from '@/components/ui/Toast';
 import { AppText } from './AppText';
 import type { ApiResource } from '@/types/resource.types';
 
@@ -47,6 +48,7 @@ export function ResourceCard({ resource, onPress, actionsMode = 'default' }: Res
       await resourceService.likeResource(resource.id);
     } catch {
       setLiked(!next);
+      toast.error('Impossible de mettre à jour le like.');
     } finally {
       setLikePending(false);
     }
@@ -62,6 +64,7 @@ export function ResourceCard({ resource, onPress, actionsMode = 'default' }: Res
       await resourceService.favoriteResource(resource.id);
     } catch {
       setFavorited(!next);
+      toast.error('Impossible de mettre à jour le favori.');
     } finally {
       setFavPending(false);
     }

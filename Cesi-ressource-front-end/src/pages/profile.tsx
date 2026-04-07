@@ -12,6 +12,7 @@ import { AppText } from '@/components/ui/AppText';
 import { AppButton } from '@/components/ui/AppButton';
 import { ResourceCard, type ResourceCardActionsMode } from '@/components/ui/ResourceCard';
 import { userService } from '@/services/user.service';
+import { toast } from '@/components/ui/Toast';
 import type { ApiResource } from '@/types/resource.types';
 
 const PAGE_SIZE = 10;
@@ -64,7 +65,7 @@ function ResourceListTab({ userId, fetchFn, emptyLabel, actionsMode = 'default' 
           border: `3px solid ${colors.primary}`, borderTopColor: 'transparent',
           borderRadius: '50%', animation: 'spin 0.6s linear infinite',
         }} />
-        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+
       </div>
     );
   }
@@ -131,6 +132,7 @@ export default function ProfilePage() {
 
   const handleLogout = async () => {
     await logout();
+    toast.success('Déconnexion réussie.');
     navigate('/', { replace: true });
   };
 

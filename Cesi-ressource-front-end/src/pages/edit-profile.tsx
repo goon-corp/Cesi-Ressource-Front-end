@@ -9,6 +9,7 @@ import { AppButton } from '@/components/ui/AppButton';
 import { AppAlert } from '@/components/ui/AppAlert';
 import { Avatar } from '@/components/ui/Avatar';
 import { ApiError } from '@/services/api';
+import { toast } from '@/components/ui/Toast';
 
 interface FieldErrors {
   first_name?: string;
@@ -35,7 +36,6 @@ export default function EditProfilePage() {
   const [user_name, setUserName] = useState(user?.user_name ?? '');
   const [loading, setLoading] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
-  const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
 
   useEffect(() => {
@@ -60,8 +60,8 @@ export default function EditProfilePage() {
     setErrorMsg('');
     try {
       await updateUser({ first_name, last_name, user_name });
-      setSuccessMsg('Profil mis à jour avec succès.');
-      setTimeout(() => navigate(-1), 1200);
+      toast.success('Profil mis à jour avec succès.');
+      navigate(-1);
     } catch (err) {
       setErrorMsg(err instanceof ApiError ? err.message : 'Une erreur est survenue. Veuillez réessayer.');
     } finally {
@@ -86,7 +86,6 @@ export default function EditProfilePage() {
           <AppText variant="caption" muted style={{ display: 'block', marginTop: 8 }}>{user.email}</AppText>
         </div>
 
-        <AppAlert type="success" message={successMsg} visible={!!successMsg} />
         <AppAlert type="error" message={errorMsg} visible={!!errorMsg} />
 
         <div style={{ backgroundColor: colors.surface, borderRadius: 8, padding: 16, marginBottom: 24 }}>
