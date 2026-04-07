@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Check, ChevronDown, X, Search, PlusCircle, Image as ImageIcon, Trash2, Plus, AlertCircle } from 'lucide-react';
+import { Check, ChevronDown, X, Search, PlusCircle, Image as ImageIcon, Trash2, Plus, AlertCircle, Tag } from 'lucide-react';
 import { useTheme } from '@/hooks/useTheme';
 import { AppText } from '@/components/ui/AppText';
 import { AppTextInput } from '@/components/ui/AppTextInput';
@@ -164,6 +164,7 @@ function TagSelector({ allTags, isLoadingTags, selectedIds, onChange, onTagCreat
   onTagCreated: (tag: TagDto) => void;
 }) {
   const { colors } = useTheme();
+  const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [isCreating, setIsCreating] = useState(false);
 
@@ -172,9 +173,8 @@ function TagSelector({ allTags, isLoadingTags, selectedIds, onChange, onTagCreat
     [allTags, search],
   );
 
-  const toggleTag = (id: string) => {
-    if (selectedIds.includes(id)) onChange(selectedIds.filter((s) => s !== id));
-    else onChange([...selectedIds, id]);
+  const toggle = (id: string) => {
+    onChange(selectedIds.includes(id) ? selectedIds.filter((s) => s !== id) : [...selectedIds, id]);
   };
 
   const handleCreate = async () => {
@@ -186,6 +186,8 @@ function TagSelector({ allTags, isLoadingTags, selectedIds, onChange, onTagCreat
       onTagCreated(newTag);
       onChange([...selectedIds, newTag.id]);
       setSearch('');
+    } catch {
+      // ignore
     } finally {
       setIsCreating(false);
     }
@@ -193,88 +195,121 @@ function TagSelector({ allTags, isLoadingTags, selectedIds, onChange, onTagCreat
 
   const exactMatch = allTags.some((t) => t.label.toLowerCase() === search.trim().toLowerCase());
   const showCreate = search.trim().length > 0 && !exactMatch;
+  const selectedTags = selectedIds.map((id) => allTags.find((t) => t.id === id)).filter(Boolean) as TagDto[];
 
   return (
     <div style={{ marginBottom: 16 }}>
       <AppText variant="label" style={{ display: 'block', marginBottom: 4 }}>Tags</AppText>
 
-      {selectedIds.length > 0 && (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
-          {selectedIds.map((id) => {
-            const tag = allTags.find((t) => t.id === id);
-            return tag ? (
-              <button
-                key={id} type="button"
-                onClick={() => toggleTag(id)}
-                style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 4,
-                  padding: '4px 10px', borderRadius: 9999,
-                  backgroundColor: colors.primary, border: 'none', cursor: 'pointer',
-                }}
-              >
-                <AppText variant="caption" style={{ color: colors.textOnPrimary }}>{tag.label}</AppText>
-                <X size={12} color={colors.textOnPrimary} />
-              </button>
-            ) : null;
-          })}
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        style={{
+          width: '100%', display: 'flex', alignItems: 'center',
+          border: `2px solid ${colors.inputBorder}`, borderRadius: 4, padding: '10px 12px', minHeight: 44,
+          backgroundColor: colors.inputBackground, cursor: 'pointer', fontFamily: 'inherit', gap: 8,
+        }}
+      >
+        <Tag size={16} color={colors.textMuted} />
+        <AppText variant="body" style={{ flex: 1, textAlign: 'left', color: selectedIds.length ? colors.text : colors.placeholder }}>
+          {selectedIds.length > 0
+            ? `${selectedIds.length} tag${selectedIds.length > 1 ? 's' : ''} sélectionné${selectedIds.length > 1 ? 's' : ''}`
+            : 'Sélectionner des tags…'}
+        </AppText>
+        <ChevronDown size={16} color={colors.textMuted} />
+      </button>
+
+      {selectedTags.length > 0 && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
+          {selectedTags.map((tag) => (
+            <button
+              key={tag.id} type="button"
+              onClick={() => toggle(tag.id)}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 4,
+                padding: '4px 10px', borderRadius: 9999,
+                backgroundColor: colors.primaryLight, border: `1px solid ${colors.primary}`, cursor: 'pointer',
+              }}
+            >
+              <AppText variant="caption" style={{ color: colors.primary }}>{tag.label}</AppText>
+              <X size={11} color={colors.primary} />
+            </button>
+          ))}
         </div>
       )}
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, border: `2px solid ${colors.inputBorder}`, borderRadius: 4, padding: '6px 10px', backgroundColor: colors.inputBackground, marginBottom: 6 }}>
-        <Search size={16} color={colors.placeholder} />
-        <input
-          type="text"
-          placeholder="Rechercher ou créer un tag..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', color: colors.text, fontSize: 14, fontFamily: 'inherit' }}
-        />
-      </div>
+      {open && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.4)' }}>
+          <div onClick={() => setOpen(false)} style={{ position: 'absolute', inset: 0 }} />
+          <div style={{ position: 'relative', backgroundColor: colors.surface, borderTopLeftRadius: 16, borderTopRightRadius: 16, maxHeight: '75vh', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 16, borderBottom: `1px solid ${colors.borderLight}` }}>
+              <AppText variant="h3">Tags</AppText>
+              <button type="button" onClick={() => setOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>
+                <X size={24} color={colors.textMuted} />
+              </button>
+            </div>
 
-      {showCreate && (
-        <button
-          type="button"
-          onClick={handleCreate}
-          disabled={isCreating}
-          style={{
-            display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 12px',
-            borderRadius: 4, border: `1px solid ${colors.primary}`, backgroundColor: colors.primaryLight,
-            cursor: 'pointer', fontFamily: 'inherit', marginBottom: 6,
-          }}
-        >
-          {isCreating
-            ? <span style={{ display: 'inline-block', width: 16, height: 16, border: `2px solid ${colors.primary}`, borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.6s linear infinite' }} />
-            : <PlusCircle size={16} color={colors.primary} />
-          }
-          <AppText variant="caption" style={{ color: colors.primary }}>Créer "{search.trim()}"</AppText>
-        </button>
-      )}
-
-      {isLoadingTags
-        ? <div style={{ display: 'flex', justifyContent: 'center', padding: 8 }}><span style={{ display: 'inline-block', width: 20, height: 20, border: `2px solid ${colors.primary}`, borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.6s linear infinite' }} /></div>
-        : (
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-            {filtered.map((tag) => {
-              const isSelected = selectedIds.includes(tag.id);
-              return (
-                <button
-                  key={tag.id} type="button" onClick={() => toggleTag(tag.id)}
-                  style={{
-                    padding: '4px 12px', borderRadius: 9999,
-                    border: `1px solid ${isSelected ? colors.primary : colors.border}`,
-                    backgroundColor: isSelected ? colors.primary : colors.surface,
-                    cursor: 'pointer', fontFamily: 'inherit',
-                  }}
-                >
-                  <AppText variant="caption" style={{ color: isSelected ? colors.textOnPrimary : colors.text }}>
-                    {tag.label}
-                  </AppText>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, border: `2px solid ${colors.inputBorder}`, borderRadius: 4, padding: '6px 10px', backgroundColor: colors.inputBackground, margin: 16 }}>
+              <Search size={16} color={colors.placeholder} />
+              <input
+                type="text"
+                placeholder="Rechercher ou créer un tag…"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                autoFocus
+                style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', color: colors.text, fontSize: 14, fontFamily: 'inherit' }}
+              />
+              {search.length > 0 && (
+                <button type="button" onClick={() => setSearch('')} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                  <X size={16} color={colors.textMuted} />
                 </button>
-              );
-            })}
+              )}
+            </div>
+
+            <div style={{ overflowY: 'auto', flex: 1 }}>
+              {showCreate && (
+                <button
+                  type="button"
+                  onClick={handleCreate}
+                  disabled={isCreating}
+                  style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, padding: '12px 16px', background: 'none', border: 'none', borderBottom: `1px solid ${colors.borderLight}`, cursor: 'pointer', fontFamily: 'inherit' }}
+                >
+                  {isCreating
+                    ? <span style={{ width: 20, height: 20, border: `2px solid ${colors.primary}`, borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.6s linear infinite', flexShrink: 0 }} />
+                    : <PlusCircle size={20} color={colors.primary} />
+                  }
+                  <AppText variant="body" style={{ color: colors.primary, flex: 1, textAlign: 'left' }}>Créer « {search.trim()} »</AppText>
+                </button>
+              )}
+              {isLoadingTags
+                ? <div style={{ display: 'flex', justifyContent: 'center', padding: 32 }}><span style={{ width: 24, height: 24, border: `3px solid ${colors.primary}`, borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.6s linear infinite' }} /></div>
+                : filtered.length === 0 && !showCreate
+                  ? <div style={{ padding: 24, textAlign: 'center' }}><AppText variant="body" muted>Aucun tag trouvé</AppText></div>
+                  : filtered.map((tag) => {
+                    const isSelected = selectedIds.includes(tag.id);
+                    return (
+                      <button
+                        key={tag.id} type="button"
+                        onClick={() => toggle(tag.id)}
+                        style={{
+                          width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                          padding: '12px 16px', background: isSelected ? colors.primaryLight : 'none',
+                          border: 'none', borderBottom: `1px solid ${colors.borderLight}`, cursor: 'pointer', fontFamily: 'inherit',
+                          minHeight: 52,
+                        }}
+                      >
+                        <AppText variant="body" style={{ flex: 1, textAlign: 'left', color: isSelected ? colors.primary : colors.text }}>
+                          {tag.label}
+                        </AppText>
+                        {isSelected && <Check size={20} color={colors.primary} />}
+                      </button>
+                    );
+                  })
+              }
+            </div>
           </div>
-        )
-      }
+        </div>
+      )}
     </div>
   );
 }
@@ -493,7 +528,7 @@ export default function CreateResourcePage() {
 
   const { data: resourceTypes, isLoading: loadingTypes } = useQuery(['resource-types'], () => resourceService.getResourceTypes());
   const { data: confidentialityTypes, isLoading: loadingConfTypes } = useQuery(['confidentiality-types'], () => resourceService.getConfidentialityTypes());
-  const { data: statuses } = useQuery(['resource-statuses'], () => resourceService.getStatuses());
+  const { data: statuses, isLoading: isLoadingStatuses, refetch: refetchStatuses } = useQuery(['resource-statuses'], () => resourceService.getStatuses());
   const { data: tagsData, isLoading: loadingTags } = useQuery(['tags-list'], () => tagService.getTags({ size: 50 }));
 
   const allTags: TagDto[] = useMemo(() => {
@@ -570,7 +605,11 @@ export default function CreateResourcePage() {
   const handleSubmit = async () => {
     if (isSubmitting || !validateStep()) return;
     const statusId = statuses?.[0]?.id ?? '';
-    if (!statusId) { setSubmitError('Impossible de récupérer le statut de publication.'); return; }
+    if (!statusId) {
+      await refetchStatuses();
+      setSubmitError('Impossible de récupérer le statut de publication. Réessayez dans un instant.');
+      return;
+    }
 
     setSubmitError('');
     const base = {
@@ -761,7 +800,7 @@ export default function CreateResourcePage() {
           : (
             <div style={{ display: 'flex', gap: 8 }}>
               <div style={{ flex: 1 }}><AppButton label="Précédent" onClick={goBack} variant="secondary" disabled={isSubmitting} /></div>
-              <div style={{ flex: 1 }}><AppButton label={isLastStep ? 'Créer' : 'Suivant'} onClick={isLastStep ? handleSubmit : goNext} loading={isLastStep && isSubmitting} disabled={isSubmitting} /></div>
+              <div style={{ flex: 1 }}><AppButton label={isLastStep ? 'Créer' : 'Suivant'} onClick={isLastStep ? handleSubmit : goNext} loading={isLastStep && (isSubmitting || isLoadingStatuses)} disabled={isSubmitting || (isLastStep && isLoadingStatuses)} /></div>
             </div>
           )
         }
