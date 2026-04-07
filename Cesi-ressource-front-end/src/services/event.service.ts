@@ -36,6 +36,10 @@ export interface CreateEventPayload {
   thumbnail?: File;
 }
 
+function toUtcIso(date: string): string {
+  return date.endsWith('Z') ? date : date.includes('+') ? date : `${date}:00Z`;
+}
+
 export const eventService = {
   getEventByResourceId: (resourceId: string): Promise<ApiEvent> =>
     api.get<ApiEvent>(`/events/${resourceId}`, false),
@@ -54,8 +58,8 @@ export const eventService = {
       formData.append('RessourceInfos.Thumbnail', payload.thumbnail);
     }
     formData.append('IsVirtual', payload.isVirtual.toString());
-    formData.append('DateStart', payload.dateStart);
-    formData.append('DateEnd', payload.dateEnd);
+    formData.append('DateStart', toUtcIso(payload.dateStart));
+    formData.append('DateEnd', toUtcIso(payload.dateEnd));
     formData.append('EventLink', payload.eventLink ?? '');
     formData.append('Location', payload.location);
     return api.upload<ApiEvent>('POST', '/events', formData, true);
@@ -65,8 +69,8 @@ export const eventService = {
     api.put<ApiEvent>(`/events/${eventId}`, {
       id: payload.id,
       is_virtual: payload.isVirtual,
-      date_start: payload.dateStart,
-      date_end: payload.dateEnd,
+      date_start: toUtcIso(payload.dateStart),
+      date_end: toUtcIso(payload.dateEnd),
       event_link: payload.eventLink ?? '',
       location: payload.location,
       ressource_id: payload.ressourceId,
