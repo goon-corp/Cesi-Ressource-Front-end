@@ -181,7 +181,7 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       await register(form);
-      toast.success('Compte créé avec succès ! Connectez-vous.');
+      toast.success('Compte créé avec succès ! Regardez vos emails pour valider votre compte.');
       navigate('/login', { replace: true });
     } catch (err) {
       if (err instanceof ApiError) {
