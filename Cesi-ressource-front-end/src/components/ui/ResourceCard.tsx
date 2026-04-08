@@ -118,28 +118,7 @@ export function ResourceCard({ resource, onPress, actionsMode = 'default' }: Res
       );
     }
 
-    return (
-      <div
-        style={{
-          display: 'flex',
-          borderTop: `1px solid ${colors.borderLight}`,
-        }}
-      >
-        <button style={buttonBase} onClick={handleLike} disabled={likePending}>
-          <Heart size={18} color={liked ? colors.error : colors.textMuted} fill={liked ? colors.error : 'none'} />
-          <AppText variant="caption" style={{ color: liked ? colors.error : colors.textMuted }}>
-            J'aime
-          </AppText>
-        </button>
-        <div style={{ width: 1, backgroundColor: colors.borderLight, margin: '6px 0' }} />
-        <button style={buttonBase} onClick={handleFavorite} disabled={favPending}>
-          <Bookmark size={18} color={favorited ? '#B34000' : colors.textMuted} fill={favorited ? '#B34000' : 'none'} />
-          <AppText variant="caption" style={{ color: favorited ? '#B34000' : colors.textMuted }}>
-            Favoris
-          </AppText>
-        </button>
-      </div>
-    );
+    return null;
   };
 
   return (
