@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Globe, MapPin, Link2, Calendar, Bookmark, BookmarkCheck, Eye, AlertCircle, FileText, Check, X, Trophy, BarChart2, Pencil, Trash2, MessageCircle, Send, Flag } from 'lucide-react';
+import { Globe, MapPin, Link2, Calendar, Bookmark, BookmarkCheck, Heart, Eye, AlertCircle, FileText, Check, X, Trophy, BarChart2, Pencil, Trash2, MessageCircle, Send, Flag } from 'lucide-react';
 import { useTheme } from '@/hooks/useTheme';
 import { useAuth } from '@/hooks/useAuth';
 import { AppText } from '@/components/ui/AppText';
@@ -13,6 +13,7 @@ import { eventService } from '@/services/event.service';
 import { articleService } from '@/services/article.service';
 import { quizService } from '@/services/quiz.service';
 import { pollService } from '@/services/poll.service';
+import { resourceService } from '@/services/resource.service';
 import { progressionService } from '@/services/progression.service';
 import { commentService } from '@/services/comment.service';
 import { reportService } from '@/services/report.service';
@@ -695,6 +696,50 @@ export default function ResourceDetailPage() {
     { enabled: !!id && isPoll },
   );
 
+  // ─── Like / Favorite state ────────────────────────────────────────────────
+  const [isLiked, setIsLiked] = useState(false);
+  const [isFavorited, setIsFavorited] = useState(false);
+  const [likeLoading, setLikeLoading] = useState(false);
+  const [favoriteLoading, setFavoriteLoading] = useState(false);
+
+  useEffect(() => {
+    if (!isAuthenticated || !id) return;
+    resourceService.getUserStatus(id).then((status) => {
+      setIsLiked(status.is_liked);
+      setIsFavorited(status.is_favorited);
+    }).catch(() => {});
+  }, [isAuthenticated, id]);
+
+  const handleLike = async () => {
+    if (!isAuthenticated || !id || likeLoading) return;
+    setLikeLoading(true);
+    const previous = isLiked;
+    setIsLiked((v) => !v);
+    try {
+      await resourceService.likeResource(id);
+    } catch {
+      setIsLiked(previous);
+      toast.error('Impossible de mettre à jour le like.');
+    } finally {
+      setLikeLoading(false);
+    }
+  };
+
+  const handleFavorite = async () => {
+    if (!isAuthenticated || !id || favoriteLoading) return;
+    setFavoriteLoading(true);
+    const previous = isFavorited;
+    setIsFavorited((v) => !v);
+    try {
+      await resourceService.favoriteResource(id);
+    } catch {
+      setIsFavorited(previous);
+      toast.error('Impossible de mettre à jour les favoris.');
+    } finally {
+      setFavoriteLoading(false);
+    }
+  };
+
   // ─── Edit state ──────────────────────────────────────────────────────────────
   const [editMode, setEditMode] = useState(false);
   const [editLoading, setEditLoading] = useState(false);
@@ -970,7 +1015,29 @@ export default function ResourceDetailPage() {
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', backgroundColor: colors.background, overflow: 'hidden' }}>
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-      <AppHeader title={resource?.title ?? 'Détails'} onMenuPress={() => navigate(-1)} showBack />
+      <AppHeader
+        title={resource?.title ?? 'Détails'}
+        onMenuPress={() => navigate(-1)}
+        showBack
+        rightAction={isAuthenticated ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <button
+              onClick={handleFavorite}
+              disabled={favoriteLoading}
+              style={{ background: 'none', border: 'none', cursor: favoriteLoading ? 'wait' : 'pointer', padding: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            >
+              <Bookmark size={22} color={isFavorited ? '#FFC107' : 'rgba(255,255,255,0.7)'} fill={isFavorited ? '#FFC107' : 'none'} />
+            </button>
+            <button
+              onClick={handleLike}
+              disabled={likeLoading}
+              style={{ background: 'none', border: 'none', cursor: likeLoading ? 'wait' : 'pointer', padding: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            >
+              <Heart size={22} color={isLiked ? colors.error : 'rgba(255,255,255,0.7)'} fill={isLiked ? colors.error : 'none'} />
+            </button>
+          </div>
+        ) : undefined}
+      />
       <div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
         <div style={{ maxWidth: 900, margin: '0 auto', width: '100%' }}>
           {renderContent()}

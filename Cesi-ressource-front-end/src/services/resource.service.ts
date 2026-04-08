@@ -34,4 +34,7 @@ export const resourceService = {
 
   favoriteResource: (id: string): Promise<void> =>
     api.post<void>(`/ressources/${id}/favorite`, {}, true),
+
+  getUserStatus: (id: string): Promise<{ is_liked: boolean; is_favorited: boolean }> =>
+    api.get<{ is_liked: boolean; is_favorited: boolean }>(`/ressources/${id}/user-status`, true),
 };
