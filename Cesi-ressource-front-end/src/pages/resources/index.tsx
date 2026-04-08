@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Search, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, X, ChevronLeft, ChevronRight, ChevronDown, Tag } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '@/hooks/useTheme';
 import { useDrawer } from '@/contexts/DrawerContext';
@@ -16,6 +16,157 @@ import { resourceUrl } from '@/utils/resource-url';
 import type { ApiResource } from '@/types/resource.types';
 
 const PAGE_SIZE = 12;
+
+interface TagDropdownProps {
+  tags: { id: string; label: string }[];
+  selectedIds: string[];
+  onChange: (ids: string[]) => void;
+}
+
+function TagDropdown({ tags, selectedIds, onChange }: TagDropdownProps) {
+  const { colors } = useTheme();
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const ref = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    if (open) {
+      setSearch('');
+      setTimeout(() => searchRef.current?.focus(), 0);
+    }
+  }, [open]);
+
+  const toggle = (id: string) => {
+    onChange(
+      selectedIds.includes(id)
+        ? selectedIds.filter((x) => x !== id)
+        : [...selectedIds, id],
+    );
+  };
+
+  const filtered = search.trim()
+    ? tags.filter((t) => t.label.toLowerCase().includes(search.toLowerCase()))
+    : tags;
+
+  const label = selectedIds.length === 0
+    ? 'Tags'
+    : selectedIds.length === 1
+      ? tags.find((t) => t.id === selectedIds[0])?.label ?? 'Tags'
+      : `${selectedIds.length} tags`;
+
+  return (
+    <div ref={ref} style={{ position: 'relative', display: 'inline-block' }}>
+      <button
+        onClick={() => setOpen((v) => !v)}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 6,
+          padding: '6px 14px',
+          borderRadius: 9999,
+          border: `1px solid ${selectedIds.length > 0 ? colors.primary : colors.border}`,
+          backgroundColor: selectedIds.length > 0 ? colors.primaryLight : colors.surface,
+          color: selectedIds.length > 0 ? colors.primary : colors.textMuted,
+          fontSize: 13, fontWeight: 500,
+          cursor: 'pointer', fontFamily: 'inherit',
+          whiteSpace: 'nowrap',
+        }}
+      >
+        <Tag size={13} />
+        {label}
+        <ChevronDown size={13} style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
+        {selectedIds.length > 0 && (
+          <span
+            onClick={(e) => { e.stopPropagation(); onChange([]); }}
+            style={{ marginLeft: 2, display: 'flex', alignItems: 'center' }}
+          >
+            <X size={12} />
+          </span>
+        )}
+      </button>
+
+      {open && (
+        <div style={{
+          position: 'absolute', top: 'calc(100% + 6px)', left: 0, zIndex: 100,
+          backgroundColor: colors.surface,
+          border: `1px solid ${colors.border}`,
+          borderRadius: 8,
+          boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
+          minWidth: 220, maxWidth: 280,
+        }}>
+          <div style={{
+            padding: '8px 10px',
+            borderBottom: `1px solid ${colors.borderLight}`,
+            display: 'flex', alignItems: 'center', gap: 6,
+          }}>
+            <Search size={13} color={colors.placeholder} style={{ flexShrink: 0 }} />
+            <input
+              ref={searchRef}
+              type="text"
+              placeholder="Rechercher..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              style={{
+                flex: 1, border: 'none', outline: 'none',
+                background: 'transparent', fontSize: 13,
+                color: colors.text, fontFamily: 'inherit',
+              }}
+            />
+            {search && (
+              <button
+                onClick={() => setSearch('')}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center' }}
+              >
+                <X size={12} color={colors.textMuted} />
+              </button>
+            )}
+          </div>
+          <div style={{ maxHeight: 220, overflowY: 'auto', padding: '6px 0' }}>
+            {filtered.length === 0 && (
+              <div style={{ padding: '10px 14px', fontSize: 13, color: colors.textMuted }}>Aucun résultat</div>
+            )}
+          {filtered.map((tag) => {
+            const selected = selectedIds.includes(tag.id);
+            return (
+              <button
+                key={tag.id}
+                onClick={() => toggle(tag.id)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 10,
+                  width: '100%', padding: '8px 14px',
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  fontFamily: 'inherit', fontSize: 13, textAlign: 'left',
+                  color: selected ? colors.primary : colors.text,
+                  backgroundColor: selected ? colors.primaryLight : 'transparent',
+                }}
+              >
+                <span style={{
+                  width: 16, height: 16, borderRadius: 3, flexShrink: 0,
+                  border: `2px solid ${selected ? colors.primary : colors.border}`,
+                  backgroundColor: selected ? colors.primary : 'transparent',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  {selected && <X size={10} color="#fff" strokeWidth={3} />}
+                </span>
+                {tag.label}
+              </button>
+            );
+          })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 interface ChipProps {
   label: string;
@@ -203,37 +354,14 @@ export default function ResourcesPage() {
               ))}
             </div>
 
-            {/* Tag chips */}
+            {/* Tag dropdown */}
             {allTags.length > 0 && (
-              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
-                {allTags.map((tag) => {
-                  const isSelected = selectedTagIds.includes(tag.id);
-                  return (
-                    <button
-                      key={tag.id}
-                      onClick={() =>
-                        setSelectedTagIds(
-                          isSelected
-                            ? selectedTagIds.filter((id) => id !== tag.id)
-                            : [...selectedTagIds, tag.id],
-                        )
-                      }
-                      style={{
-                        padding: '4px 12px',
-                        borderRadius: 9999,
-                        border: `1px solid ${isSelected ? colors.primary : colors.border}`,
-                        backgroundColor: isSelected ? colors.primaryLight : 'transparent',
-                        color: isSelected ? colors.primary : colors.textMuted,
-                        fontSize: 12,
-                        cursor: 'pointer',
-                        fontFamily: 'inherit',
-                        transition: 'background-color 0.15s',
-                      }}
-                    >
-                      {tag.label}
-                    </button>
-                  );
-                })}
+              <div style={{ marginBottom: 8 }}>
+                <TagDropdown
+                  tags={allTags}
+                  selectedIds={selectedTagIds}
+                  onChange={setSelectedTagIds}
+                />
               </div>
             )}
 
