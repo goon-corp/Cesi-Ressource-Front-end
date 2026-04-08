@@ -67,4 +67,8 @@ export const userService = {
 			true,
 			{ page, size },
 		),
+	
+	confirmAccount: (
+		token: string
+	): Promise<void> => api.put(`/auth/confirm-account/${token}`,null,false,false)
 };
