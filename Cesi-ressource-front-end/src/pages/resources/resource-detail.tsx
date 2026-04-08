@@ -365,6 +365,7 @@ function CommentsSection({ ressourceId, userId, isAuthenticated }: {
   isAuthenticated: boolean;
 }) {
   const { colors } = useTheme();
+  const navigate = useNavigate();
   const [comments, setComments] = useState<CommentDto[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -486,13 +487,13 @@ function CommentsSection({ ressourceId, userId, isAuthenticated }: {
             return (
               <div key={comment.id} style={{ padding: 12, borderRadius: 8, border: `1px solid ${colors.borderLight}`, backgroundColor: colors.surface }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 8 }}>
-                  <div style={{ width: 34, height: 34, borderRadius: '50%', backgroundColor: colors.primaryLight, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <div onClick={() => navigate(`/profile/${comment.user_id}`)} style={{ width: 34, height: 34, borderRadius: '50%', backgroundColor: colors.primaryLight, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, cursor: 'pointer' }}>
                     <AppText variant="caption" style={{ color: colors.primary, fontWeight: '700' }}>
                       {(comment.user_name ?? 'U')[0].toUpperCase()}
                     </AppText>
                   </div>
                   <div style={{ flex: 1 }}>
-                    <AppText variant="label" style={{ display: 'block' }}>{comment.user_name ?? 'Utilisateur'}</AppText>
+                    <AppText variant="label" onClick={() => navigate(`/profile/${comment.user_id}`)} style={{ display: 'block', cursor: 'pointer' }}>{comment.user_name ?? 'Utilisateur'}</AppText>
                     <AppText variant="caption" muted>{formatCommentDate(comment.creation_time)}</AppText>
                   </div>
                   {isOwn && !isEditing && (

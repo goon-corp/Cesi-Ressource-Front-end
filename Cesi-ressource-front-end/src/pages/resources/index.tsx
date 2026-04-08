@@ -208,6 +208,7 @@ export default function ResourcesPage() {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
+  const [showFriendsOnly, setShowFriendsOnly] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
 
   const [resources, setResources] = useState<ApiResource[]>([]);
@@ -243,9 +244,11 @@ export default function ResourcesPage() {
       const result = await resourceService.getResources({
         page: pageNum,
         size: PAGE_SIZE,
+        RessourceStatus: 'Validé',
         ...(debouncedSearch ? { RessourceTitle: debouncedSearch } : {}),
         ...(activeFilter ? { RessourceType: activeFilter } : {}),
         ...(selectedTagIds.length > 0 ? { RessourceTags: selectedTagIds } : {}),
+        ...(showFriendsOnly ? { RessourceConfidentialityType: 'Interne Citoyen' } : {}),
       });
       setResources(result?.items ?? []);
       setTotalPages(result?.total_pages ?? 1);
@@ -256,7 +259,7 @@ export default function ResourcesPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [debouncedSearch, activeFilter, selectedTagIds]);
+  }, [debouncedSearch, activeFilter, selectedTagIds, showFriendsOnly]);
 
   useEffect(() => {
     fetchResources(1);
@@ -352,6 +355,13 @@ export default function ResourcesPage() {
                   onClick={() => setActiveFilter(activeFilter === f ? null : f)}
                 />
               ))}
+              {isAuthenticated && (
+                <CategoryChip
+                  label="Mes amis"
+                  isActive={showFriendsOnly}
+                  onClick={() => setShowFriendsOnly((v) => !v)}
+                />
+              )}
             </div>
 
             {/* Tag dropdown */}

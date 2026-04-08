@@ -16,6 +16,7 @@ import CreateResourcePage from '@/pages/resources/create';
 import MentionsLegalesPage from '@/pages/mentions-legales';
 import PolitiqueConfidentialitePage from '@/pages/politique-confidentialite';
 import ConditionsUtilisationPage from '@/pages/conditions-utilisation';
+import PublicProfilePage from '@/pages/public-profile';
 import ErrorPage from '@/pages/error';
 
 export const router = createBrowserRouter([
@@ -36,6 +37,7 @@ export const router = createBrowserRouter([
   { path: '/', element: <HomePage /> },
   { path: '/resources', element: <ResourcesPage /> },
   { path: '/settings', element: <SettingsPage /> },
+  { path: '/profile/:id', element: <PublicProfilePage /> },
   { path: '/resources/:type/:slug/:id', element: <ResourceDetailPage /> },
   { path: '/resources/:id', element: <ResourceDetailPage /> },
   { path: '/mentions-legales', element: <MentionsLegalesPage /> },
